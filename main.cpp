@@ -84,6 +84,30 @@ unsigned int statusPosition(const string & reference, const string & genotype,st
 	return 0;
 }
 
+/**
+ * \brief Checks if a given string is numeric
+ * \return True if numeric otherwise false
+ */
+bool is_number(const std::string& s)
+{
+    std::string::const_iterator it = s.begin();
+    while (it != s.end() && std::isdigit(*it)) ++it;
+    return !s.empty() && it == s.end();
+}
+
+/**
+ * \brief Get Quality Integer Value
+ * \param string field reference
+ * \return unsigned integer value
+ */
+unsigned int getQuality(const string & quality)
+{
+    if(is_number(quality))
+    {
+        return atoi(quality.c_str());
+    }
+    return 0;
+}
 
 /**
  * \brief Application Usage
@@ -102,12 +126,12 @@ void printHelp()
 int main(int argc, char *argv[])
 {
 	/*0. Variables Initialization*/
-	unsigned int nSnps = 0;
-	unsigned int nInDels = 0;
-	unsigned int nMultiallelic = 0;
+	vector <unsigned int> vSnps(2,0); /*Position 0 Total, Position 1 Q>0*/
+	vector <unsigned int> vInDels(2,0); /*Position 0 Total, Position 1 Q>0*/
+	vector <unsigned int> vMultiallelic(2,0); /*Position 0 Total, Position 1 Q>0*/
 	map<unsigned int,unsigned int> coverageVariants;
 	map <unsigned int,unsigned int> genotypeQualityVariants;
-	map <string,unsigned int> mutationChanges;
+	vector < map <string,unsigned int> > mutationChanges (2); 
 	map <string,unsigned int> chromosomeVariants;
 
 	string jsonFile;
@@ -161,29 +185,42 @@ int main(int argc, char *argv[])
 	    		{
 	    			case 1:
 	    			{
-	    				nSnps ++;
+	    				unsigned int nUpdate = 1;
+                        if (getQuality(fields[5])>20)
+                        {
+                        	nUpdate = 2;
+                        	vSnps[1] ++;
+                        }
 
-	    				/* A.A Mutation profiles*/
-						if ( mutationChanges.find(typeOfMutation) == mutationChanges.end() )
-						{
-							//1. Mutation not found in the map
-							mutationChanges[typeOfMutation] = 1;
-						} else {
-							//2. Mutation already found in the map
-							mutationChanges[typeOfMutation] ++;
-						}
-						updateVariantsStats = true;
+                        vSnps[0] ++;
+                                        
+
+                        for (unsigned int i = 0; i < nUpdate; i++)
+                        {
+                        	/* A.A Mutation profiles*/
+                        	if ( mutationChanges[i].find(typeOfMutation) == mutationChanges[i].end() )
+                        	{
+                        		//1. Mutation not found in the map
+                        		mutationChanges[i][typeOfMutation] = 1;
+                        	} else {
+                        		//2. Mutation already found in the map
+                        		mutationChanges[i][typeOfMutation] ++;
+                        	}
+                        }
+                        updateVariantsStats = true;
 	    				break;
 	    			}
 	    			case 2:
 	    			{
-	    				nInDels ++;
+	    				if (getQuality(fields[5])>20) vInDels[1] ++;
+                        vInDels[0] ++;
 	    				updateVariantsStats = true;
 	    				break;
 	    			}
 	    			case 3:
 	    			{
-	    				nMultiallelic ++;
+	    				if (getQuality(fields[5])>20) vMultiallelic[1] ++;
+                        vMultiallelic[0] ++;
 	    				updateVariantsStats = true;
 	    				break;
 	    			}
@@ -235,9 +272,12 @@ int main(int argc, char *argv[])
 	/*1.1.2.1 Basic Snps Stats*/
 	jsonOutput << "{" << endl;
 
-	jsonOutput << "    \"snps\":"<< nSnps << "," << endl;
-	jsonOutput << "    \"indels\":"<< nInDels << "," << endl;
-	jsonOutput << "    \"multialelli\":"<< nMultiallelic << "," << endl;
+	jsonOutput << "    \"TotalSnps\":"<< vSnps[0] << "," << endl;
+    jsonOutput << "    \"q20Snps\":"<< vSnps[1] << "," << endl;
+	jsonOutput << "    \"TotalIndels\":"<< vInDels[0] << "," << endl;
+    jsonOutput << "    \"q20Indels\":"<< vInDels[1] << "," << endl;
+	jsonOutput << "    \"TotalMultiallelic\":"<< vMultiallelic[0] << "," << endl;
+    jsonOutput << "    \"q20Multiallelic\":"<< vMultiallelic[1] << "," << endl;
 
 	/*1.1.2.2 Coverage Variants*/
 	jsonOutput << "    \"coverageVariants\": {"<< endl;
@@ -268,63 +308,75 @@ int main(int argc, char *argv[])
     jsonOutput << "    },"<< endl;
 
 	/*1.1.2.4 Mutation Changes*/
-	jsonOutput << "    \"mutations\": {"<< endl;
-	map <string,unsigned int>::iterator final_iterator = mutationChanges.end();
+    for (unsigned int i = 0; i < 2; i++)
+    {
+    	if (i==0) jsonOutput << "    \"mutations\": {"<< endl;
+        else jsonOutput << "    \"mutationsQ20\": {"<< endl;
+	
+        map <string,unsigned int>::iterator final_iterator = mutationChanges[i].end();
+	    --final_iterator;
+
+	    for (map <string,unsigned int>::iterator it=mutationChanges[i].begin(); it!=mutationChanges[i].end(); ++it)
+	    {
+	    	jsonOutput << "        \"" << it->first << "\":" << it->second;
+		    if (it != final_iterator) jsonOutput << ",";
+		    jsonOutput << endl;
+	    }
+
+	    jsonOutput << "    },"<< endl;
+    }
+
+	/*1.1.2.4 Chromosome Variants*/
+	jsonOutput << "    \"chromosomeVariants\": {"<< endl;
+
+	map <string,unsigned int>::iterator final_iterator = chromosomeVariants.end();
 	--final_iterator;
 
-	for (map <string,unsigned int>::iterator it=mutationChanges.begin(); it!=mutationChanges.end(); ++it)
+	for (map <string,unsigned int>::iterator it=chromosomeVariants.begin(); it!=chromosomeVariants.end(); ++it)
 	{
 		jsonOutput << "        \"" << it->first << "\":" << it->second;
 		if (it != final_iterator) jsonOutput << ",";
 		jsonOutput << endl;
 	}
 
-    jsonOutput << "    },"<< endl;
+	jsonOutput << "    }"<< endl;
 
-    /*1.1.2.4 Chromosome Variants*/
-    jsonOutput << "    \"chromosomeVariants\": {"<< endl;
-    final_iterator = chromosomeVariants.end();
-    --final_iterator;
-
-    for (map <string,unsigned int>::iterator it=chromosomeVariants.begin(); it!=chromosomeVariants.end(); ++it)
-    {
-    	jsonOutput << "        \"" << it->first << "\":" << it->second;
-    	if (it != final_iterator) jsonOutput << ",";
-    	jsonOutput << endl;
-    }
-
-    jsonOutput << "    }"<< endl;
-
-
-    jsonOutput << "}"<< endl;
+	jsonOutput << "}"<< endl;
 
 	jsonOutput.close();
 
 
 	/*1.1.3 Output Results to standard output*/
 
-	cout << "Snps          :" << nSnps << endl;
-	cout << "InDels        :" << nInDels << endl;
-	cout << "Multialellic  :" << nMultiallelic << endl;
+	cout << "Total Snps          :" << vSnps[0] << endl;
+    cout << "Q>20 Snps           :" << vSnps[1] << endl;
+
+	cout << "Total InDels        :" << vInDels[0] << endl;
+    cout << "Q>20 InDels         :" << vInDels[1] << endl;
+
+	cout << "Total Multialellic  :" << vMultiallelic[0] << endl;
+    cout << "Q>20 Multialellic  :" << vMultiallelic[1] << endl;
 
 
 	cout << "" << endl << "Coverage" << endl;
     for (map<unsigned int,unsigned int>::iterator it=coverageVariants.begin(); it!=coverageVariants.end(); ++it)
-		    cout << it->first << " => " << it->second << '\n';
+    	cout << it->first << " => " << it->second << '\n';
 
     cout << "" << endl << "Genotype Quality" << endl;
 	for (map <unsigned int,unsigned int>::iterator it=genotypeQualityVariants.begin(); it!=genotypeQualityVariants.end(); ++it)
-		    std::cout << it->first << " => " << it->second << '\n';
+		std::cout << it->first << " => " << it->second << '\n';
 
-	cout << "" << endl << "Mutation Changes" << endl;
-	for (map <string,unsigned int>::iterator it=mutationChanges.begin(); it!=mutationChanges.end(); ++it)
-		    std::cout << it->first << " => " << it->second << '\n';
+    for (unsigned int i = 0; i <2; i++)
+    {
+    	if (i==0) cout << "" << endl << "Mutation Changes" << endl;
+        else cout << "" << endl << "Mutation Changes Q>20" << endl;
+	    for (map <string,unsigned int>::iterator it=mutationChanges[i].begin(); it!=mutationChanges[i].end(); ++it)
+	    	std::cout << it->first << " => " << it->second << '\n';
+    }
 
-	cout << "" << endl << "Chromosome" << endl;
-	for (map <string,unsigned int>::iterator it=chromosomeVariants.begin(); it!=chromosomeVariants.end(); ++it)
-		    std::cout << it->first << " => " << it->second << '\n';
-
-
+    cout << "" << endl << "Chromosome" << endl;
+    for (map <string,unsigned int>::iterator it=chromosomeVariants.begin(); it!=chromosomeVariants.end(); ++it)
+    	std::cout << it->first << " => " << it->second << '\n';
 
 	return 0;
 }

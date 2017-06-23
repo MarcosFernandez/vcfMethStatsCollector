@@ -284,12 +284,19 @@ int main(int argc, char *argv[])
 	map<unsigned int,unsigned int>::iterator final_iter = coverageVariants.end();
 	--final_iter;
 
-	for (map<unsigned int,unsigned int>::iterator it=coverageVariants.begin(); it!=coverageVariants.end(); ++it)
+	if (coverageVariants.size() > 0)
 	{
-		jsonOutput << "        \"" << it->first << "\":" << it->second;
-		if (it != final_iter) jsonOutput << ",";
-		jsonOutput << endl;
+	    for (map<unsigned int,unsigned int>::iterator it=coverageVariants.begin(); it!=coverageVariants.end(); ++it)
+	    {
+		    jsonOutput << "        \"" << it->first << "\":" << it->second;
+		    if (it != final_iter) jsonOutput << ",";
+		    jsonOutput << endl;
+	    }
 	}
+        else
+        {
+            jsonOutput << "        \"\":0" << endl;
+        }
 
 	jsonOutput << "    },"<< endl;
 
@@ -298,12 +305,19 @@ int main(int argc, char *argv[])
 	final_iter = genotypeQualityVariants.end();
 	--final_iter;
 
-	for (map<unsigned int,unsigned int>::iterator it=genotypeQualityVariants.begin(); it!=genotypeQualityVariants.end(); ++it)
+	if (genotypeQualityVariants.size() > 0)
 	{
-		jsonOutput << "        \"" << it->first << "\":" << it->second;
-		if (it != final_iter) jsonOutput << ",";
-		jsonOutput << endl;
+	    for (map<unsigned int,unsigned int>::iterator it=genotypeQualityVariants.begin(); it!=genotypeQualityVariants.end(); ++it)
+	    {
+		    jsonOutput << "        \"" << it->first << "\":" << it->second;
+		    if (it != final_iter) jsonOutput << ",";
+		    jsonOutput << endl;
+	    }
 	}
+        else
+        {
+            jsonOutput << "        \"\":0" << endl;
+        }
 
     jsonOutput << "    },"<< endl;
 
@@ -313,16 +327,22 @@ int main(int argc, char *argv[])
     	if (i==0) jsonOutput << "    \"mutations\": {"<< endl;
         else jsonOutput << "    \"mutationsQ20\": {"<< endl;
 	
-        map <string,unsigned int>::iterator final_iterator = mutationChanges[i].end();
-	    --final_iterator;
+    	if (mutationChanges[i].size() > 0)
+    	{
+            map <string,unsigned int>::iterator final_iterator = mutationChanges[i].end();
+	        --final_iterator;
 
-	    for (map <string,unsigned int>::iterator it=mutationChanges[i].begin(); it!=mutationChanges[i].end(); ++it)
-	    {
-	    	jsonOutput << "        \"" << it->first << "\":" << it->second;
-		    if (it != final_iterator) jsonOutput << ",";
-		    jsonOutput << endl;
-	    }
-
+	        for (map <string,unsigned int>::iterator it=mutationChanges[i].begin(); it!=mutationChanges[i].end(); ++it)
+	        {
+	    	    jsonOutput << "        \"" << it->first << "\":" << it->second;
+		        if (it != final_iterator) jsonOutput << ",";
+		        jsonOutput << endl;
+	        }
+    	}
+        else
+        {
+            jsonOutput << "        \"\":0" << endl;
+        }
 	    jsonOutput << "    },"<< endl;
     }
 
@@ -332,12 +352,19 @@ int main(int argc, char *argv[])
 	map <string,unsigned int>::iterator final_iterator = chromosomeVariants.end();
 	--final_iterator;
 
-	for (map <string,unsigned int>::iterator it=chromosomeVariants.begin(); it!=chromosomeVariants.end(); ++it)
+	if (chromosomeVariants.size() > 0)
 	{
-		jsonOutput << "        \"" << it->first << "\":" << it->second;
-		if (it != final_iterator) jsonOutput << ",";
-		jsonOutput << endl;
+	    for (map <string,unsigned int>::iterator it=chromosomeVariants.begin(); it!=chromosomeVariants.end(); ++it)
+	    {
+		    jsonOutput << "        \"" << it->first << "\":" << it->second;
+		    if (it != final_iterator) jsonOutput << ",";
+		    jsonOutput << endl;
+	    }
 	}
+        else
+        {
+            jsonOutput << "        \"\":0" << endl;
+        }
 
 	jsonOutput << "    }"<< endl;
 
@@ -355,7 +382,7 @@ int main(int argc, char *argv[])
     cout << "Q>20 InDels         :" << vInDels[1] << endl;
 
 	cout << "Total Multialellic  :" << vMultiallelic[0] << endl;
-    cout << "Q>20 Multialellic  :" << vMultiallelic[1] << endl;
+    cout << "Q>20 Multialellic   :" << vMultiallelic[1] << endl;
 
 
 	cout << "" << endl << "Coverage" << endl;

@@ -281,11 +281,12 @@ int main(int argc, char *argv[])
 
 	/*1.1.2.2 Coverage Variants*/
 	jsonOutput << "    \"coverageVariants\": {"<< endl;
-	map<unsigned int,unsigned int>::iterator final_iter = coverageVariants.end();
-	--final_iter;
 
 	if (coverageVariants.size() > 0)
 	{
+		map<unsigned int,unsigned int>::iterator final_iter = coverageVariants.end();
+		--final_iter;
+
 	    for (map<unsigned int,unsigned int>::iterator it=coverageVariants.begin(); it!=coverageVariants.end(); ++it)
 	    {
 		    jsonOutput << "        \"" << it->first << "\":" << it->second;
@@ -293,20 +294,21 @@ int main(int argc, char *argv[])
 		    jsonOutput << endl;
 	    }
 	}
-        else
-        {
-            jsonOutput << "        \"\":0" << endl;
-        }
+	else
+	{
+		jsonOutput << "        \"0\":0" << endl;
+	}
 
 	jsonOutput << "    },"<< endl;
 
 	/*1.1.2.3 Genotype Quality Variants*/
 	jsonOutput << "    \"qualityVariants\": {"<< endl;
-	final_iter = genotypeQualityVariants.end();
-	--final_iter;
 
 	if (genotypeQualityVariants.size() > 0)
 	{
+		map<unsigned int,unsigned int>::iterator final_iter = genotypeQualityVariants.end();
+		--final_iter;
+
 	    for (map<unsigned int,unsigned int>::iterator it=genotypeQualityVariants.begin(); it!=genotypeQualityVariants.end(); ++it)
 	    {
 		    jsonOutput << "        \"" << it->first << "\":" << it->second;
@@ -314,10 +316,10 @@ int main(int argc, char *argv[])
 		    jsonOutput << endl;
 	    }
 	}
-        else
-        {
-            jsonOutput << "        \"\":0" << endl;
-        }
+	else
+	{
+		jsonOutput << "        \"0\":0" << endl;
+	}
 
     jsonOutput << "    },"<< endl;
 
@@ -341,7 +343,7 @@ int main(int argc, char *argv[])
     	}
         else
         {
-            jsonOutput << "        \"\":0" << endl;
+            jsonOutput << "        \"0\":0" << endl;
         }
 	    jsonOutput << "    },"<< endl;
     }
@@ -349,11 +351,13 @@ int main(int argc, char *argv[])
 	/*1.1.2.4 Chromosome Variants*/
 	jsonOutput << "    \"chromosomeVariants\": {"<< endl;
 
-	map <string,unsigned int>::iterator final_iterator = chromosomeVariants.end();
-	--final_iterator;
 
 	if (chromosomeVariants.size() > 0)
 	{
+		map <string,unsigned int>::iterator final_iterator = chromosomeVariants.end();
+		--final_iterator;
+
+
 	    for (map <string,unsigned int>::iterator it=chromosomeVariants.begin(); it!=chromosomeVariants.end(); ++it)
 	    {
 		    jsonOutput << "        \"" << it->first << "\":" << it->second;
@@ -361,10 +365,10 @@ int main(int argc, char *argv[])
 		    jsonOutput << endl;
 	    }
 	}
-        else
-        {
-            jsonOutput << "        \"\":0" << endl;
-        }
+	else
+	{
+		jsonOutput << "        \"0\":0" << endl;
+	}
 
 	jsonOutput << "    }"<< endl;
 
